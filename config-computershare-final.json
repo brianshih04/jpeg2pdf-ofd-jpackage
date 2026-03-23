@@ -1,0 +1,13 @@
+{
+  "input": {
+    "folder": "C:\\OCR\\ComputershareInput"
+  },
+  "output": {
+    "folder": "C:\\OCR\\ComputershareOutput",
+    "formats": ["pdf", "ofd", "txt"],
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "en"
+  }
+}

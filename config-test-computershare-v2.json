@@ -1,0 +1,19 @@
+{
+  "input": {
+    "folder": "C:/Users/Brian/.openclaw/media/inbound",
+    "extensions": ["jpg", "jpeg", "png"]
+  },
+  "output": {
+    "folder": "C:/OCR/ComputershareOutput",
+    "formats": ["pdf", "ofd", "txt"],
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "en",
+    "useGpu": false,
+    "cpuThreads": 4
+  },
+  "font": {
+    "path": "C:/Windows/Fonts/arial.ttf"
+  }
+}

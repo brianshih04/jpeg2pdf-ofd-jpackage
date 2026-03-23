@@ -1,0 +1,23 @@
+{
+  "input": {
+    "files": [
+      "C:\\Users\\Brian\\.openclaw\\media\\inbound\\computershare_wire_form-1---dc93cb63-bcd5-4f1d-a5e4-0062f620f0a7.jpg",
+      "C:\\Users\\Brian\\.openclaw\\media\\inbound\\computershare_wire_form-2---d1154a40-0c4e-4bc0-a889-563284094b25.jpg",
+      "C:\\Users\\Brian\\.openclaw\\media\\inbound\\computershare_wire_form-3---2d8bbf1b-8458-42f8-bd96-1246f21e9a53.jpg",
+      "C:\\Users\\Brian\\.openclaw\\media\\inbound\\computershare_wire_form-4---ca239c40-4bd3-429e-9589-b05ade59cfc2.jpg"
+    ]
+  },
+  "output": {
+    "folder": "C:\\OCR\\ComputershareOutput",
+    "formats": ["pdf", "ofd", "txt"],
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "en",
+    "useGpu": false,
+    "cpuThreads": 4
+  },
+  "font": {
+    "path": "C:\\Windows\\Fonts\\arial.ttf"
+  }
+}
