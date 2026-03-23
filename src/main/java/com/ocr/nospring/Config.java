@@ -1,7 +1,11 @@
 package com.ocr.nospring;
 
+import java.io.File;
+
 /**
- * 配置類 - 無 Spring Boot
+ * 簡單配置類（無 JSON 依賴）
+ * 
+ * 用於 Native Image 編譯
  */
 public class Config {
     
@@ -11,8 +15,16 @@ public class Config {
         this.fontPath = getDefaultFontPath();
     }
     
+    public String getFontPath() {
+        return fontPath;
+    }
+    
+    public void setFontPath(String fontPath) {
+        this.fontPath = fontPath;
+    }
+    
     private String getDefaultFontPath() {
-        String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name", "").toLowerCase();
         
         if (os.contains("win")) {
             String[] windowsFonts = {
@@ -23,16 +35,34 @@ public class Config {
             };
             
             for (String font : windowsFonts) {
-                if (new java.io.File(font).exists()) {
+                if (new File(font).exists()) {
+                    return font;
+                }
+            }
+        } else if (os.contains("mac")) {
+            String[] macFonts = {
+                "/System/Library/Fonts/PingFang.ttc",
+                "/Library/Fonts/Arial Unicode.ttf"
+            };
+            
+            for (String font : macFonts) {
+                if (new File(font).exists()) {
+                    return font;
+                }
+            }
+        } else {
+            String[] linuxFonts = {
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
+            };
+            
+            for (String font : linuxFonts) {
+                if (new File(font).exists()) {
                     return font;
                 }
             }
         }
         
         return null;
-    }
-    
-    public String getFontPath() {
-        return fontPath;
     }
 }

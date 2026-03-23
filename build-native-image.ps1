@@ -1,10 +1,10 @@
-# GraalVM Native Image 構建腳本
+# GraalVM Native Image 構建腳本（簡化版）
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================"
 Write-Host "  GraalVM Native Image Builder"
-Write-Host "  No Spring Boot Edition"
+Write-Host "  No JSON Dependencies"
 Write-Host "========================================"
 Write-Host ""
 
@@ -71,26 +71,23 @@ Write-Host "開始編譯..."
 
 $env:JAVA_HOME = $GRAALVM_HOME
 
+# 使用簡單的編譯選項
 & $NATIVE_IMAGE `
   --no-fallback `
-  -H:+ReportExceptionStackTraces `
-  --initialize-at-build-time=io.github.mymonstercat.ocr.InferenceEngine `
   -H:Name=jpeg2pdf-ofd-native `
-  -H:Class=com.ocr.nospring.NativeImageMain `
-  -jar $jarPath
+  -H:Class=com.ocr.nospring.NativeCli `
+  -jar $jarPath 2>&1 | Tee-Object -FilePath "native-image-build.log"
 
 if ($LASTExitCode -ne 0) {
     Write-Host ""
     Write-Host "❌ Native Image 編譯失敗"
     Write-Host ""
-    Write-Host "可能的原因："
-    Write-Host "  1. RapidOCR JNI 問題"
-    Write-Host "  2. 資源路徑問題"
-    Write-Host "  3. 反射配置問題"
+    Write-Host "查看日誌："
+    Get-Content "native-image-build.log" | Select-Object -Last 30
     Write-Host ""
-    Write-Host "建議："
-    Write-Host "  1. 使用 jpackage 版本（已測試成功）"
-    Write-Host "  2. 檢查 GraalVM 日誌"
+    Write-Host "備用方案："
+    Write-Host "  1. 使用 jpackage 版本（181 MB，無需 Java）"
+    Write-Host "  2. 使用 JAR 版本（52 MB，需要 Java）"
     exit 1
 }
 
@@ -103,47 +100,67 @@ Write-Host "[5/6] 移動輸出文件..."
 
 Move-Item "jpeg2pdf-ofd-native.exe" "dist-native\jpeg2pdf-ofd-native.exe" -Force
 
-# 添加配置文件
-$config = @{
-    input = @{
-        folder = "C:/OCR/Watch"
-        pattern = "*.jpg"
-    }
-    output = @{
-        folder = "C:/OCR/Output"
-        format = "all"
-    }
-    ocr = @{
-        language = "chinese_cht"
-    }
-}
-
-$config | ConvertTo-Json -Depth 3 | Set-Content -Path "dist-native\config.json" -Encoding UTF8
-
 # 創建 README
 $readme = @'
 # JPEG2PDF-OFD Native Image Edition
 
 ## 特點
 
-- ✅ 單文件 EXE（~30-50 MB）
+- ✅ 單文件 EXE
 - ✅ 無需 Java
-- ✅ 極快啟動（<1秒）
-- ✅ 完整功能
+- ✅ 無 JSON 依賴
+- ✅ 極快啟動
 
 ## 使用方法
 
 ```cmd
-jpeg2pdf-ofd-native.exe config.json
+# 單個文件
+jpeg2pdf-ofd-native.exe -i image.jpg -o output/
+
+# 資料夾
+jpeg2pdf-ofd-native.exe -i images/ -o output/
+
+# 通配符
+jpeg2pdf-ofd-native.exe -i *.jpg -o output/
+
+# 指定語言和格式
+jpeg2pdf-ofd-native.exe -i image.jpg -o output/ -l chinese_cht -f all
 ```
+
+## 參數
+
+```
+-i, --input <path>     輸入文件/資料夾/通配符（必須）
+-o, --output <path>    輸出資料夾（默認：當前目錄）
+-l, --lang <lang>      OCR 語言（默認：chinese_cht）
+-f, --format <fmt>     輸出格式（默認：pdf）
+-h, --help             顯示幫助
+-v, --version          顯示版本
+```
+
+## 格式
+
+- pdf  - 可搜索 PDF
+- ofd  - 可搜索 OFD
+- txt  - 純文本
+- all  - 所有格式
+
+## 語言
+
+- chinese_cht - 繁體中文（默認）
+- ch          - 簡體中文
+- en          - 英文
+- japan       - 日文
+- korean      - 韓文
+- （80+ 種語言）
 
 ## 對比
 
-| 版本 | 大小 | 啟動時間 | 需要 Java |
-|------|------|----------|----------|
-| Native Image | ~30-50 MB | <1秒 | ❌ 否 |
-| jpackage | 181 MB | ~1秒 | ❌ 否 |
-| JAR | 52 MB | ~1秒 | ✅ 是 |
+| 版本 | 大小 | Java | 單文件 |
+|------|------|------|--------|
+| Native Image | ~30-50 MB | ❌ | ✅ |
+| jpackage | 181 MB | ❌ | ❌ |
+| JAR | 52 MB | ✅ | ✅ |
 '@
 
 Set-Content -Path "dist-native\README.md" -Encoding UTF8
@@ -183,8 +200,18 @@ Write-Host "  使用方法"
 Write-Host "========================================"
 Write-Host ""
 Write-Host "cd dist-native"
-Write-Host "jpeg2pdf-ofd-native.exe config.json"
 Write-Host ""
-Write-Host "========================================"
+Write-Host "# 顯示幫助"
+Write-Host "jpeg2pdf-ofd-native.exe --help"
+Write-Host ""
+Write-Host "# 單個文件"
+Write-Host "jpeg2pdf-ofd-native.exe -i image.jpg -o output/"
+Write-Host ""
+Write-Host "# 資料夾"
+Write-Host "jpeg2pdf-ofd-native.exe -i images/ -o output/"
+Write-Host ""
+Write-Host "# 指定語言和格式"
+Write-Host "jpeg2pdf-ofd-native.exe -i image.jpg -o output/ -l en -f all"
+Write-Host ""
 
 pause
