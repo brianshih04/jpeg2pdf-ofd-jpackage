@@ -875,9 +875,6 @@ dist-jpackage\JPEG2PDF-OFD-NoSpring\
 # 使用 Homebrew
 brew install openjdk@17
 
-# 或下載 GraalVM
-# https://github.com/graalvm/graalvm-ce-builds/releases
-
 # 2. 設置 JAVA_HOME
 export JAVA_HOME=/usr/local/opt/openjdk@17
 export PATH=$JAVA_HOME/bin:$PATH
