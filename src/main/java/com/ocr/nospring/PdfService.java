@@ -7,6 +7,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -73,6 +74,77 @@ public class PdfService {
                         
                     } catch (Exception e) {
                         System.err.println("    Error drawing text: " + e.getMessage());
+                    }
+                }
+            }
+            
+            // 保存
+            document.save(outputFile);
+        }
+    }
+    
+    /**
+     * 生成多頁 PDF
+     */
+    public void generateMultiPagePdf(List<BufferedImage> images, List<List<OcrService.TextBlock>> allTextBlocks, File outputFile) throws Exception {
+        
+        if (images.size() != allTextBlocks.size()) {
+            throw new IllegalArgumentException("Images and text blocks count mismatch");
+        }
+        
+        try (PDDocument document = new PDDocument()) {
+            // 載入字體
+            PDFont font = loadFont(document);
+            
+            // 處理每一頁
+            for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
+                BufferedImage image = images.get(pageIndex);
+                List<OcrService.TextBlock> textBlocks = allTextBlocks.get(pageIndex);
+                
+                // 建立頁面
+                float width = image.getWidth();
+                float height = image.getHeight();
+                PDPage page = new PDPage(new PDRectangle(width, height));
+                document.addPage(page);
+                
+                // 轉換圖片
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "PNG", baos);
+                byte[] imageBytes = baos.toByteArray();
+                
+                PDImageXObject pdImage = PDImageXObject.createFromByteArray(
+                    document, imageBytes, "image"
+                );
+                
+                // 繪製內容
+                try (PDPageContentStream contentStream = new PDPageContentStream(
+                    document, page, 
+                    PDPageContentStream.AppendMode.APPEND, 
+                    true, 
+                    true
+                )) {
+                    // 1. 繪製圖片
+                    contentStream.drawImage(pdImage, 0, 0, width, height);
+                    
+                    // 2. 繪製透明文字層
+                    contentStream.setRenderingMode(org.apache.pdfbox.pdmodel.graphics.state.RenderingMode.NEITHER);
+                    contentStream.setNonStrokingColor(255, 255, 255); // 白色
+                    
+                    for (OcrService.TextBlock block : textBlocks) {
+                        try {
+                            // Y 軸轉換（PDF 使用 Y-up）
+                            float pdfY = (float) (height - block.y - block.height);
+                            float fontSize = block.fontSize;
+                            
+                            contentStream.beginText();
+                            contentStream.setFont(font, fontSize);
+                            contentStream.newLineAtOffset((float) block.x, pdfY);
+                            contentStream.showText(block.text);
+                            contentStream.endText();
+                            
+                        } catch (Exception e) {
+                            System.err.println("    Page " + (pageIndex + 1) + " - Error drawing text: " + e.getMessage());
+                        }
                     }
                 }
             }

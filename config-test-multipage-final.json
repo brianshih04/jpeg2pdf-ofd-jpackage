@@ -1,0 +1,14 @@
+{
+  "input": {
+    "folder": "C:\\OCR\\MultiPageInput",
+    "pattern": "*.jpg"
+  },
+  "output": {
+    "folder": "C:\\OCR\\MultiPageOutput",
+    "format": "all",
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "chinese_cht"
+  }
+}
